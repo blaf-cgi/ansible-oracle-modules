@@ -1,5 +1,9 @@
 # Changelog #
 
+## 1.2.0 ##
+
+* Add module oracle_quota
+
 ## 1.1.2 ##
 
 * Adapt unit tests to ansible-test usage
