@@ -22,12 +22,14 @@
   register: _
   failed_when: _.failed or _.changed
 
-- name: "add a table and a view to schema"
+- name: "add a table, a view and a materialized view to schema"
   oracle_sql:
     <<: *con_param
     script: |
       create table foo.bar (col1 varchar2(10));
       create view foo.baz as (select col1 from bar);
+      grant create table to foo;
+      create materialized view foo.mv_bar as (select * from foo.bar);
 
 - name: "empty an non empty schema"
   oracle_user:
@@ -37,8 +39,10 @@
   register: _
   failed_when: |
     _.failed or not _.changed or
-    (('drop TABLE' not in _.ddls[0] or 'drop VIEW' not in _.ddls[1]) and
-    ('drop TABLE' not in _.ddls[1] or 'drop VIEW' not in _.ddls[0]))
+        (('drop TABLE' not in _.ddls[0] and 'drop TABLE' not in _.ddls[1] and 'drop TABLE' not in _.ddls[2]) or
+    ('drop VIEW' not in _.ddls[0] and 'drop VIEW' not in _.ddls[1] and 'drop VIEW' not in _.ddls[2]) or
+    ('drop MATERIALIZED VIEW' not in _.ddls[0] and 'drop MATERIALIZED VIEW' not in _.ddls[1] and 
+     'drop MATERIALIZED VIEW' not in _.ddls[2]))
 
 - name: "delete user"
   oracle_user:

@@ -294,11 +294,21 @@ def ensure_present(schema_name, authentication_type, schema_password, default_ta
 
         if empty:
             rows = ora_db.execute_select(
-                "select object_name, object_type"
-                "  from all_objects"
-                " where object_type in('TABLE', 'VIEW', 'PACKAGE', 'PROCEDURE', 'FUNCTION', 'SEQUENCE',"
+                "select ao.object_name, ao.object_type"
+                "  from all_objects ao"
+                " where ao.object_type in('TABLE', 'VIEW', 'PACKAGE', 'PROCEDURE', 'FUNCTION', 'SEQUENCE',"
                 "                      'SYNONYM', 'TYPE', 'DATABASE LINK', 'TABLE PARTITION')"
-                "   and owner = '%s' and generated = 'N'" % schema_name.upper())
+                "   and ao.owner = '%s' and ao.generated = 'N' and not exists("
+                        "select 1 from all_objects sq"
+                        " where ao.object_name = sq.object_name"
+                        " and sq.owner = '%s'"
+                        " and ao.object_type = 'TABLE'"
+                        " and sq.object_type = 'MATERIALIZED VIEW')"
+                " UNION"
+                " select ao.object_name, ao.object_type"
+                "   from all_objects ao"
+                "  where ao.object_type in('MATERIALIZED VIEW')"
+                "    and ao.owner = '%s' and ao.generated = 'N'" % (schema_name.upper(),schema_name.upper(),schema_name.upper()))
 
             for row in rows:
                 object_name = row[0]

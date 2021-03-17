@@ -1,5 +1,10 @@
 # Changelog #
 
+## 1.1.3 ##
+
+* Fixed oracle_user to drop materialized views
+* Updated tests for oracle_user
+
 ## 1.1.2 ##
 
 * Adapt unit tests to ansible-test usage
